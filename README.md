@@ -92,24 +92,10 @@ The completed project will provision an AWS environment consisting of:
 * A custom Virtual Private Cloud (VPC)
 * Public and private subnets
 * Internet Gateway
-* NAT Gateway
 * Route tables
 * Security Groups
 * Ubuntu EC2 instance
 * Elastic IP
 * Nginx configured through Ansible
 * Automated deployment pipeline using GitHub Actions
-
----
-
-## Learning Goals
-
-This project is designed to develop practical DevOps skills by understanding:
-
-* Infrastructure as Code with Terraform
-* Configuration Management with Ansible
-* CI/CD automation with GitHub Actions
-* AWS networking fundamentals
-* Production-style project organization
-* Automation best practices
-* Debugging and troubleshooting techniques
+* 
