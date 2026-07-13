@@ -97,5 +97,4 @@ The completed project will provision an AWS environment consisting of:
 * Ubuntu EC2 instance
 * Elastic IP
 * Nginx configured through Ansible
-* Automated deployment pipeline using GitHub Actions
-* 
+* Automated deployment pipeline using GitHub Actions 
