@@ -1,5 +1,5 @@
 ---
-- name: Nginx configuration
+- name: Nginx Configuration
   hosts: application
   become: true
   gather_facts: true
