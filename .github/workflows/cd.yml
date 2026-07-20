@@ -1,0 +1,76 @@
+name: infra-nginx-cd
+
+
+on:
+  workflow_run:
+    workflows:
+      - infra-nginx-ci
+    types:
+      - completed
+
+
+jobs:
+  deploy-nginx:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Initation
+        working-directory: terraform
+        run: terraform init
+
+      - name: Terraform Apply
+        working-directory: terraform
+        run: terraform apply -auto-approve
+
+      - name: Capture EC2 Public IP
+        working-directory: terraform
+        run: |
+          echo "PUBLIC_IP=$(terraform output -raw elastic_ip)" >> $GITHUB_ENV
+
+      - name: Install Ansible
+        run: |
+          sudo apt update
+          sudo apt install -y ansible
+
+      - name: Create SSH Key
+        run: |
+          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > company.pem
+          chmod 400 company.pem
+
+      - name: Ansible Inventory Update
+        working-directory: ansible
+        run: |
+          echo "[application]" > inventory.ini
+          echo "$PUBLIC_IP ansible_user=ubuntu" >> inventory.ini
+
+      - name: Waiting For EC2 To Boot
+        run: |
+          until ssh \
+            -i company.pem \
+            -o StrictHostKeyChecking=no \
+            -o ConnectTimeout=5 \
+            ubuntu@$PUBLIC_IP "echo ready"; do
+            echo "Waiting for EC2..."
+            sleep 10
+          done
+        
+      - name: Run Ansible Playbook
+        working-directory: ansible
+        run: ansible-playbook -i inventory.ini --private-key ../company.pem site.yml
+
+      - name: Verify service
+        run: curl -I http://$PUBLIC_IP

@@ -1,9 +1,16 @@
-name: infra-nginx
+name: infra-nginx-ci
+
 
 on:
   push:
     branches:
       - main
+    
+    paths:
+      - "terraform/**"
+      - "ansible/**"
+      - ".github/workflows/**"
+
 
 jobs:
   build-nginx:
